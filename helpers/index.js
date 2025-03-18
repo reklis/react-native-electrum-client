@@ -84,7 +84,7 @@ const pingServer = ({ id = Math.random() } = {}) => {
 
 //peers = A list of peers acquired from default electrum servers using the getPeers method.
 //customPeers = A list of peers added by the user to connect to by default in lieu of the default peer list.
-const start = ({ id = Math.random(), network = "", peers = [], customPeers = [], net, tls} = {}, keepAliveInterval = undefined) => {
+const start = ({ clientName, protocolVersion, id = Math.random(), network = "", peers = [], customPeers = [], net, tls} = {}, keepAliveInterval = undefined) => {
 	const method = "connectToPeer";
 	electrumKeepAliveInterval = keepAliveInterval || electrumKeepAliveInterval;
 	return new Promise(async (resolve) => {
@@ -100,7 +100,11 @@ const start = ({ id = Math.random(), network = "", peers = [], customPeers = [],
 			}
 			//Clear/Remove any previous keep-alive message.
 			try {clearInterval(electrumKeepAlive);} catch {}
+
+			clients.clientName = clientName;
+			clients.protocolVersion = protocolVersion;
 			clients.network = network;
+
 			let customPeersLength = 0;
 			try {customPeersLength = customPeers.length;} catch {}
 			//Attempt to connect to specified peer
@@ -148,6 +152,12 @@ const connectToPeer = ({ port = 50002, host = "", protocol = "ssl", network = "b
 				if (connectionResponse.error) {
 					return resolve(connectionResponse);
 				}
+
+				// Identify the client to the server and negotiate the protocol version.
+				if (clients.clientName && clients.protocolVersion) {
+					await clients.mainClient[network].server_version(clients.clientName, clients.protocolVersion);
+				}
+
 				/*
 				 * The scripthash doesn't have to be valid.
 				 * We're simply testing if the server will respond to a batch request.
