@@ -1,5 +1,5 @@
 {
-  "name": "rn-electrum-client",
+  "name": "@synonymdev/rn-electrum-client",
   "version": "0.0.22",
   "description": "Electrum protocol client for React Native & Node.js",
   "main": "index.js",
